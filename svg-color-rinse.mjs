@@ -244,8 +244,13 @@ async function main() {
   });
 
   if (values.help || positionals.length === 0) {
-    console.log(readFileSync(new URL(import.meta.url), 'utf8').split('\n')
-      .filter((l) => l.startsWith('//')).map((l) => l.slice(3)).join('\n'));
+    const lines = readFileSync(new URL(import.meta.url), 'utf8').split('\n');
+    const header = [];
+    for (const l of lines.slice(1)) { // skip shebang, stop at first code line
+      if (!l.startsWith('//')) break;
+      header.push(l.slice(3));
+    }
+    console.log(header.join('\n'));
     process.exit(positionals.length === 0 && !values.help ? 1 : 0);
   }
 

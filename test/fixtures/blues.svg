@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 105 35">
+  <!-- Blue-family artwork for the hue gate: with `--hue blue`, heavy blues
+       merge into the darkest claimed blue, the murky near-black goes to the
+       neutral gate, and the pale wash goes to white. -->
+  <rect width="105" height="35" fill="#e8eefa"/>  <!-- tint 6.8%, sat 7%: neutral -> #ffffff -->
+  <rect x="5" y="5" width="20" height="25" fill="#0a1123"/>   <!-- sat 9.8%: neutral -> #000000 -->
+  <rect x="30" y="5" width="20" height="25" fill="#101c37"/>  <!-- darkest claimed blue: becomes the anchor -->
+  <rect x="55" y="5" width="20" height="25" fill="#172951"/>  <!-- tint 84.2% -> merges to #101c37 -->
+  <rect x="80" y="5" width="20" height="25" fill="#476eca"/>  <!-- mid blue: stays -->
+</svg>

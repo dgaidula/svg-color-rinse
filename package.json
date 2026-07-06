@@ -1,0 +1,36 @@
+{
+  "name": "svg-color-rinse",
+  "version": "1.0.0",
+  "description": "Snap the messy near-blacks and near-whites (or any hue family) in SVG exports to clean anchors, with optional svgo optimization. Built for cleaning up Recraft-style vector exports before print.",
+  "type": "module",
+  "bin": {
+    "svg-color-rinse": "./svg-color-rinse.mjs"
+  },
+  "files": [
+    "svg-color-rinse.mjs",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": [
+    "svg",
+    "color",
+    "normalize",
+    "rich-black",
+    "print",
+    "prepress",
+    "recraft",
+    "svgo",
+    "batch",
+    "cli"
+  ],
+  "author": "Dan Gaidula <dan@iceboxind.com>",
+  "license": "MIT",
+  "dependencies": {
+    "svgo": "^4.0.1"
+  }
+}

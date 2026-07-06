@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 60">
+  <!-- Miniature of a typical Recraft grayscale export: several "blacks",
+       several "whites", mid grays, a gradient, and a saturated color that
+       the rinse must never touch. -->
+  <defs>
+    <style>
+      .near-black { fill: #171617; }   /* tint 91.2% -> #000000 */
+      .almost     { fill: #343435; }   /* tint 79.6% -> stays   */
+      .mid        { fill: #88888b; }   /* tint 46.3% -> stays   */
+      .near-white { fill: #eae9eb; }   /* tint  8.4% -> #ffffff */
+      .paper      { fill: #fdfcfd; }   /* tint  1.0% -> #ffffff */
+    </style>
+    <linearGradient id="g">
+      <stop offset="0" stop-color="#000"/>
+      <stop offset="1" stop-color="#242228"/> <!-- tint 86.2% -> #000000 -->
+    </linearGradient>
+  </defs>
+  <rect class="paper" width="130" height="60"/>
+  <rect class="near-black" x="5" y="5" width="20" height="20"/>
+  <rect class="almost" x="30" y="5" width="20" height="20"/>
+  <rect class="mid" x="55" y="5" width="20" height="20"/>
+  <rect class="near-white" x="80" y="5" width="20" height="20"/>
+  <rect x="105" y="5" width="20" height="20" fill="url(#g)"/>
+  <rect x="5" y="30" width="20" height="20" fill="rgb(23, 22, 23)"/>   <!-- rgb() form -> #000000 -->
+  <rect x="30" y="30" width="20" height="20" style="fill:#101011"/>    <!-- inline style -> #000000 -->
+  <rect x="55" y="30" width="20" height="20" fill="#8b0000"/>          <!-- saturated red: untouched -->
+  <rect x="80" y="30" width="20" height="20" fill="#000"/>             <!-- already black: no-op -->
+  <rect x="105" y="30" width="20" height="20" fill="#fff"/>            <!-- already white: no-op -->
+</svg>

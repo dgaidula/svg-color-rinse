@@ -32,5 +32,13 @@
   "license": "MIT",
   "dependencies": {
     "svgo": "^4.0.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dgaidula/svg-color-rinse.git"
+  },
+  "homepage": "https://github.com/dgaidula/svg-color-rinse#readme",
+  "bugs": {
+    "url": "https://github.com/dgaidula/svg-color-rinse/issues"
   }
 }

@@ -112,6 +112,38 @@ claims genuinely colored fills. With no `--dark`, the hue gate anchors to the
 darkest color it claims in each file — "make all the heavy blues the same
 blue".
 
+## Quantizing mid-grays
+
+AI vectorizers don't just scatter near-blacks and near-whites — the mid-grays
+in between are often jittered too, a dozen barely-different fills like
+`#3a3d3b`, `#3b3e3c`, `#3c383a` where a human designer would have used one.
+Left alone, each of those becomes its own slightly-different tint on press.
+
+`--quantize N` snaps every surviving neutral mid-tone (saturation ≤
+`--max-saturation`, tint strictly between `--white` and `--black` — the
+colors the gates leave untouched) onto the nearest of N evenly spaced tint
+levels: `i/(N+1)` for `i = 1..N`. `--quantize 4` gives levels at 20%, 40%,
+60%, 80% tint; each survivor moves to whichever level it's closest to, output
+as a neutral gray hex (`round(255 × (1 − level))` per channel).
+
+```sh
+svg-color-rinse --quantize 4 art.svg
+```
+
+```
+art.svg:
+  quantize     #3c383a (tint  77.5%) -> #333333  [1x]
+  quantize     #3a3d3b (tint  76.5%) -> #333333  [1x]
+  quantize     #3b3e3c (tint  76.1%) -> #333333  [1x]
+```
+
+A color already sitting exactly on a level is left alone (no self-replacement
+row). Quantizing runs after the gates and combines cleanly with `--hue` and
+`--optimize`. It only ever touches neutral mid-tones: colors claimed by a hue
+gate (saturation above `--max-saturation`) are never quantized, even if they
+sit in the same jittered-mid-tone territory — see `CLAUDE.md` for the
+reasoning and the workaround.
+
 ## Optimize with svgo
 
 `--optimize` runs svgo on each file after rinsing — `preset-default`,
@@ -147,6 +179,7 @@ written.
 | `--hue <name\|deg>` | off | add a hue gate for that color family |
 | `--tolerance <deg>` | 30 | hue window for the hue gate |
 | `--dark <#rrggbb>` | auto | dark anchor for the hue gate (darkest claimed color if omitted) |
+| `--quantize <N>` | off | snap surviving neutral mid-grays onto N evenly spaced tint levels |
 | `--optimize` | off | run svgo (preset-default, multipass, keep viewBox) after rinsing |
 | `--in-place` | off | overwrite inputs instead of writing `*-rinsed.svg` |
 | `--dry-run` | off | report only, write nothing |

@@ -75,6 +75,57 @@ test('--optimize runs svgo after rinsing', () => {
   }
 });
 
+test('--quantize collapses jittered mid-grays onto N levels', () => {
+  const out = run('--dry-run', '--quantize', '3', path.join(FIXTURES, 'mids.svg'));
+  assert.match(out, /quantize .*#bec0bd .*-> #bfbfbf/);
+  assert.match(out, /quantize .*#c1bfc0 .*-> #bfbfbf/);
+  assert.match(out, /quantize .*#80827f .*-> #808080/);
+  assert.match(out, /quantize .*#7e8180 .*-> #808080/);
+  assert.match(out, /quantize .*#3e413f .*-> #404040/);
+  assert.match(out, /quantize .*#423f41 .*-> #404040/);
+  // exactly on a level already: no self-replacement row
+  assert.doesNotMatch(out, /#808080 .*-> #808080/);
+  // saturated color: quantize never touches it
+  assert.doesNotMatch(out, /#8b5a3c/);
+  // heavy near-black is the neutral gate's, not quantize's
+  assert.match(out, /neutral .*#141213 .*-> #000000/);
+  assert.doesNotMatch(out, /quantize .*#141213/);
+});
+
+test('--quantize written file collapses to exactly N distinct grays', () => {
+  const dir = mkdtempSync(path.join(tmpdir(), 'rinse-'));
+  try {
+    const file = path.join(dir, 'mids.svg');
+    copyFileSync(path.join(FIXTURES, 'mids.svg'), file);
+    run('--quantize', '3', file);
+    const rinsed = readFileSync(path.join(dir, 'mids-rinsed.svg'), 'utf8');
+    const colors = new Set(rinsed.match(/#[0-9a-fA-F]{3,6}/g));
+    assert.deepEqual(
+      [...colors].sort(),
+      ['#000000', '#404040', '#808080', '#8b5a3c', '#bfbfbf'].sort(),
+    );
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('--quantize does not double-process gate-claimed colors', () => {
+  const out = run('--dry-run', '--hue', 'blue', '--quantize', '3', path.join(FIXTURES, 'blues.svg'));
+  // hue gate still merges the heavy blue to its anchor, untouched by quantize
+  assert.match(out, /hue .*#172951 .*-> #101c37/);
+  // the mid blue is saturated -- quantize's neutral-only scope leaves it alone
+  assert.doesNotMatch(out, /#476eca/);
+  assert.doesNotMatch(out, /quantize/);
+});
+
+test('--quantize rejects non-integer or sub-1 N', () => {
+  const fixture = path.join(FIXTURES, 'mids.svg');
+  for (const bad of ['0', '--quantize=-1', '2.5', 'abc']) {
+    const args = bad.startsWith('--quantize=') ? [bad, fixture] : ['--quantize', bad, fixture];
+    assert.throws(() => run(...args), /--quantize must be an integer >= 1/);
+  }
+});
+
 test('folder mode recurses and skips *-rinsed.svg outputs', () => {
   const dir = mkdtempSync(path.join(tmpdir(), 'rinse-'));
   try {

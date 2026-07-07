@@ -19,6 +19,14 @@
 // hue: heavy tints merge into one dark anchor (--dark, or by default the
 // darkest matching color already in the file) and pale tints wash to white.
 //
+// `--quantize N` collapses the neutral mid-grays the gates leave alone (tint
+// strictly between --white and --black, saturation <= --max-saturation) onto
+// N evenly spaced tint levels: i/(N+1) for i = 1..N. AI vectorizers scatter
+// dozens of jittered near-identical mid-grays; this snaps them to a small,
+// intentional ramp instead of dozens of one-off print tints. It runs after
+// the gates, on whatever they left untouched, and never touches saturated
+// (hue-gate) colors -- see the README for that limitation.
+//
 // Colors are rewritten wherever they appear: <style> blocks, fill/stroke/
 // stop-color attributes, inline style="", in #rgb, #rrggbb, and rgb() forms.
 //
@@ -33,6 +41,7 @@
 //   node svg-color-rinse.mjs --optimize exports/       # rinse + svgo minify
 //   node svg-color-rinse.mjs --hue blue --dark "#0b1f5e" art.svg
 //   node svg-color-rinse.mjs --black 80 --white 10 --max-saturation 12 art.svg
+//   node svg-color-rinse.mjs --quantize 4 art.svg
 
 import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs';
 import { parseArgs } from 'node:util';
@@ -102,6 +111,31 @@ function buildGates(opts) {
 
 const claimingGate = (rgb, gates) => gates.find((g) => g.matches(rgb)) ?? null;
 
+// ---- quantize --------------------------------------------------------------
+
+// N evenly spaced tint levels between white and black, e.g. N=4 -> [.2, .4, .6, .8].
+const quantizeLevels = (n) => Array.from({ length: n }, (_, i) => (i + 1) / (n + 1));
+
+const nearestLevel = (tintFrac, levels) =>
+  levels.reduce((best, lv) => (Math.abs(tintFrac - lv) < Math.abs(tintFrac - best) ? lv : best));
+
+const quantizeGray = (level) => {
+  const ch = Math.round(255 * (1 - level));
+  return toHex([ch, ch, ch]);
+};
+
+// Only neutral mid-tones the gates left alone are eligible: saturated colors
+// (hue-gate territory) and anything already claimed by the black/white gates
+// are out of scope here, not just left alone by coincidence.
+function quantizeReplacementFor(rgb, opts, levels) {
+  if (satPct(rgb) > opts.maxSaturation) return null;
+  const t = tintPct(rgb);
+  if (t <= opts.white || t >= opts.black) return null;
+  const color = quantizeGray(nearestLevel(t / 100, levels));
+  if (color === toHex(rgb)) return null;
+  return { gate: 'quantize', color };
+}
+
 // For a hue gate with no explicit --dark, anchor heavy tints to the darkest
 // color that gate claims in this file. A color counts only if this gate is
 // the one that claims it (the neutral gate takes murky near-grays first).
@@ -166,6 +200,25 @@ function rinse(text, gates, opts) {
     note(m, res, rgb);
     return res.color;
   });
+
+  // Pass 3: quantize whatever mid-grays the gates left alone.
+  if (opts.quantize !== null) {
+    const levels = quantizeLevels(opts.quantize);
+    out = out.replace(HEX_RE, (m, h) => {
+      const rgb = parseHex(h);
+      const res = quantizeReplacementFor(rgb, opts, levels);
+      if (res === null) return m;
+      note(m, res, rgb);
+      return res.color;
+    });
+    out = out.replace(RGB_RE, (m, r, g, b) => {
+      const rgb = [r, g, b].map((v) => Math.min(Number(v), 255));
+      const res = quantizeReplacementFor(rgb, opts, levels);
+      if (res === null) return m;
+      note(m, res, rgb);
+      return res.color;
+    });
+  }
   return { out, changes };
 }
 
@@ -235,6 +288,7 @@ async function main() {
       hue: { type: 'string' },
       tolerance: { type: 'string', default: '30' },
       dark: { type: 'string' },
+      quantize: { type: 'string' },
       optimize: { type: 'boolean', default: false },
       'in-place': { type: 'boolean', default: false },
       'dry-run': { type: 'boolean', default: false },
@@ -262,6 +316,14 @@ async function main() {
       process.exit(1);
     }
   }
+  let quantize = null;
+  if (values.quantize !== undefined) {
+    quantize = Number(values.quantize);
+    if (!Number.isInteger(quantize) || quantize < 1) {
+      console.error(`--quantize must be an integer >= 1, got "${values.quantize}"`);
+      process.exit(1);
+    }
+  }
   const opts = {
     black: Number(values.black),
     white: Number(values.white),
@@ -269,6 +331,7 @@ async function main() {
     hue,
     tolerance: Number(values.tolerance),
     dark: values.dark?.toLowerCase() ?? null,
+    quantize,
     optimize: values.optimize,
     inPlace: values['in-place'],
     dryRun: values['dry-run'],

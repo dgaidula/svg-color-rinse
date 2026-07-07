@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 40">
+  <!-- Jittered mid-grays for --quantize: an AI vectorizer's near-identical
+       fills clustered around three intended tints, plus a color already
+       sitting exactly on a level (must be left alone), a saturated color
+       (must be left alone), and a murky near-black already claimed by the
+       neutral gate (must be left alone, it's not a quantize candidate). -->
+  <rect x="5" y="5" width="20" height="20" fill="#bec0bd"/>   <!-- tint 25.1% -> nearest .25 level -->
+  <rect x="30" y="5" width="20" height="20" fill="#c1bfc0"/>  <!-- tint 24.8% -> nearest .25 level -->
+  <rect x="55" y="5" width="20" height="20" fill="#80827f"/>  <!-- tint 49.4% -> nearest .5 level -->
+  <rect x="80" y="5" width="20" height="20" fill="#7e8180"/>  <!-- tint 49.8% -> nearest .5 level -->
+  <rect x="105" y="5" width="20" height="20" fill="#3e413f"/> <!-- tint 75.0% -> nearest .75 level -->
+  <rect x="130" y="5" width="20" height="20" fill="#423f41"/> <!-- tint 74.9% -> nearest .75 level -->
+  <rect x="155" y="5" width="20" height="20" fill="#808080"/> <!-- already the .5 level: no-op -->
+  <rect x="5" y="30" width="20" height="20" fill="#8b5a3c"/>  <!-- saturated: never quantized -->
+  <rect x="30" y="30" width="20" height="20" fill="#141213"/> <!-- tint 92.7%: neutral gate's, not quantize's -->
+</svg>

@@ -28,7 +28,7 @@
     "batch",
     "cli"
   ],
-  "author": "Dan Gaidula <dan@iceboxind.com>",
+  "author": "Danniel T. Gaidula <dan@iceboxind.com>",
   "license": "MIT",
   "dependencies": {
     "svgo": "^4.0.1"

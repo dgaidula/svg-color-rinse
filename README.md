@@ -183,6 +183,7 @@ written.
 | `--optimize` | off | run svgo (preset-default, multipass, keep viewBox) after rinsing |
 | `--in-place` | off | overwrite inputs instead of writing `*-rinsed.svg` |
 | `--dry-run` | off | report only, write nothing |
+| `--cheat` | | print a short card of common invocations in tldr page format and exit |
 | `--help` | | print usage |
 
 ## The remaining print step

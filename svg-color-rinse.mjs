@@ -42,6 +42,9 @@
 //   node svg-color-rinse.mjs --hue blue --dark "#0b1f5e" art.svg
 //   node svg-color-rinse.mjs --black 80 --white 10 --max-saturation 12 art.svg
 //   node svg-color-rinse.mjs --quantize 4 art.svg
+//   node svg-color-rinse.mjs --cheat                   # print a short card of common
+//                                                      # invocations in tldr page format
+//                                                      # and exit
 
 import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs';
 import { parseArgs } from 'node:util';
@@ -268,6 +271,31 @@ async function processFile(file, gates, opts) {
   console.log(`  wrote ${dest}`);
 }
 
+const CHEAT = `# svg-color-rinse
+
+> Snap the scattered near-blacks and near-whites in SVG exports to true black and white.
+> More information: svg-color-rinse --help.
+
+- Simulate rinsing a folder of SVGs:
+
+\`svg-color-rinse --dry-run {{path/to/directory}}\`
+
+- Rinse SVG files, writing *-rinsed.svg copies:
+
+\`svg-color-rinse {{path/to/file1.svg path/to/file2.svg ...}}\`
+
+- Rinse and minify with svgo:
+
+\`svg-color-rinse --optimize {{path/to/file.svg}}\`
+
+- Collapse the mid-grays onto a few evenly spaced levels:
+
+\`svg-color-rinse --quantize {{4}} {{path/to/file.svg}}\`
+
+- Overwrite every SVG in a folder, recursively:
+
+\`svg-color-rinse --in-place {{path/to/directory}}\``;
+
 // ---- CLI ------------------------------------------------------------------
 
 function collectSvgs(p, out) {
@@ -292,10 +320,16 @@ async function main() {
       optimize: { type: 'boolean', default: false },
       'in-place': { type: 'boolean', default: false },
       'dry-run': { type: 'boolean', default: false },
+      cheat: { type: 'boolean', default: false },
       help: { type: 'boolean', default: false },
     },
     allowPositionals: true,
   });
+
+  if (values.cheat && !values.help) {
+    console.log(CHEAT);
+    return;
+  }
 
   if (values.help || positionals.length === 0) {
     const lines = readFileSync(new URL(import.meta.url), 'utf8').split('\n');
